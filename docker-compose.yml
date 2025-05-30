@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - TARGET_API_URL=${TARGET_API_URL:-https://api.deepseek.com/v1}
+      - TARGET_API_URL=${TARGET_API_URL:-https://api.deepseek.com}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - TIMEOUT=${TIMEOUT:-300.0}
       - MAX_CONNECTIONS=${MAX_CONNECTIONS:-100}

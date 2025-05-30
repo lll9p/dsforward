@@ -26,7 +26,7 @@ dsf
 dsf --reload --log-level debug
 
 # 自定义配置
-dsf --target-url https://api.deepseek.com/v1 --port 8080
+dsf --target-url https://api.deepseek.com --port 8080
 ```
 
 ## Docker部署
@@ -45,7 +45,7 @@ docker run -p 8000:8000 dsf-proxy
 
 # 自定义配置
 docker run -p 8000:8000 \
-  -e TARGET_API_URL=https://api.deepseek.com/v1 \
+  -e TARGET_API_URL=https://api.deepseek.com \
   -e LOG_LEVEL=info \
   dsf-proxy
 
@@ -54,7 +54,7 @@ docker run -d \
   --name dsf-proxy \
   --restart unless-stopped \
   -p 8000:8000 \
-  -e TARGET_API_URL=https://api.deepseek.com/v1 \
+  -e TARGET_API_URL=https://api.deepseek.com \
   dsf-proxy
 ```
 
@@ -130,7 +130,7 @@ services:
       - "traefik.http.routers.dsf.rule=Host(`your-domain.com`)"
       - "traefik.http.services.dsf.loadbalancer.server.port=8000"
     environment:
-      - TARGET_API_URL=https://api.deepseek.com/v1
+      - TARGET_API_URL=https://api.deepseek.com
 ```
 
 ### 2. 环境变量配置
@@ -138,7 +138,7 @@ services:
 生产环境推荐的环境变量：
 
 ```bash
-TARGET_API_URL=https://api.deepseek.com/v1
+TARGET_API_URL=https://api.deepseek.com
 HOST=0.0.0.0
 PORT=8000
 LOG_LEVEL=info

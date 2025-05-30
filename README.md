@@ -156,7 +156,7 @@ docker build -t dsf-proxy .
 docker run -d \
   --name dsf-proxy \
   -p 8000:8000 \
-  -e TARGET_API_URL=https://api.deepseek.com/v1 \
+  -e TARGET_API_URL=https://api.deepseek.com \
   -e LOG_LEVEL=info \
   dsf-proxy
 ```
