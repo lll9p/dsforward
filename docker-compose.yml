@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  dsf-proxy:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - TARGET_API_URL=${TARGET_API_URL:-https://api.deepseek.com/v1}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - TIMEOUT=${TIMEOUT:-300.0}
+      - MAX_CONNECTIONS=${MAX_CONNECTIONS:-100}
+      - MAX_KEEPALIVE_CONNECTIONS=${MAX_KEEPALIVE_CONNECTIONS:-20}
+      - ENABLE_HTTP2=${ENABLE_HTTP2:-true}
+      - VERIFY_SSL=${VERIFY_SSL:-false}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
