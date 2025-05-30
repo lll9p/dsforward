@@ -331,7 +331,7 @@ def create_app(target_url: str | None = None) -> FastAPI:
         return {"status": "healthy", "target_url": target_url}
 
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
-    async def proxy_request(request: Request, path: str):
+    async def proxy_request(request: Request, path: str):  # type: ignore
         """代理所有请求"""
         # 跳过健康检查路径
         if path == "health":
