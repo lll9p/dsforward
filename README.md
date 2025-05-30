@@ -18,7 +18,7 @@
 
 ```bash
 pip install -e .
-dsf --target-url https://api.deepseek.com/v1
+dsf --target-url https://api.deepseek.com
 ```
 
 ### 方式2: Docker运行
@@ -28,7 +28,7 @@ dsf --target-url https://api.deepseek.com/v1
 docker build -t dsf-proxy .
 
 # 运行容器
-docker run -p 8000:8000 -e TARGET_API_URL=https://api.deepseek.com/v1 dsf-proxy
+docker run -p 8000:8000 -e TARGET_API_URL=https://api.deepseek.com dsf-proxy
 ```
 
 ### 方式3: Docker Compose
@@ -47,11 +47,11 @@ docker-compose up -d
 ### 命令行启动
 
 ```bash
-# 使用默认设置（代理到 https://api.deepseek.com/v1）
+# 使用默认设置（代理到 https://api.deepseek.com）
 dsf
 
 # 指定目标API
-dsf --target-url https://your-api-endpoint.com/v1
+dsf --target-url https://your-api-endpoint.com
 
 # 自定义端口和地址
 dsf --host 0.0.0.0 --port 8080
@@ -66,7 +66,7 @@ dsf --reload
 ### 环境变量配置
 
 ```bash
-export TARGET_API_URL=https://your-api-endpoint.com/v1
+export TARGET_API_URL=https://your-api-endpoint.com
 export LOG_LEVEL=info
 dsf
 ```
@@ -78,7 +78,7 @@ from dsf import create_app
 import uvicorn
 
 # 创建应用
-app = create_app("https://your-api-endpoint.com/v1")
+app = create_app("https://your-api-endpoint.com")
 
 # 启动服务器
 uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -97,7 +97,7 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 启动代理服务器：
 
 ```bash
-dsf --target-url https://api.deepseek.com/v1 --port 8000
+dsf --target-url https://api.deepseek.com --port 8000
 ```
 
 然后将你的应用指向代理地址：
