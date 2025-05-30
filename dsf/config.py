@@ -10,7 +10,7 @@ class Config:
 
     def __init__(self):
         """初始化配置"""
-        self.target_api_url = os.getenv("TARGET_API_URL", "https://api.deepseek.com/v1")
+        self.target_api_url = os.getenv("TARGET_API_URL", "https://api.deepseek.com")
         self.host = os.getenv("HOST", "0.0.0.0")
         self.port = int(os.getenv("PORT", "8000"))
         self.log_level = os.getenv("LOG_LEVEL", "info").lower()

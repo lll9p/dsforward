@@ -305,7 +305,7 @@ class AIProxy:
 def create_app(target_url: str | None = None) -> FastAPI:
     """创建FastAPI应用"""
     if not target_url:
-        target_url = os.getenv("TARGET_API_URL", "https://api.deepseek.com/v1")
+        target_url = os.getenv("TARGET_API_URL", "https://api.deepseek.com")
 
     # 创建代理实例
     proxy = AIProxy(target_url)
@@ -328,7 +328,7 @@ def create_app(target_url: str | None = None) -> FastAPI:
     @app.get("/health")
     async def health_check():
         """健康检查端点"""
-        return {"status": "healthy", "target_url": target_url}
+        return {"status": "healthy"}
 
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
     async def proxy_request(request: Request, path: str):  # type: ignore
