@@ -1,6 +1,6 @@
 """
 AI API转发代理服务器
-用于修复缺少<think>标签的AI模型API响应
+用于转发AI模型API请求和响应
 """
 
 import json
@@ -8,7 +8,6 @@ import logging
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class AIProxy:
-    """AI API代理类，负责转发请求并修复<think>标签"""
+    """AI API代理类，负责转发请求和响应"""
 
     def __init__(self, target_url: str):
         """
@@ -133,8 +132,6 @@ class AIProxy:
         """
 
         async def stream_generator() -> AsyncGenerator[str]:
-            first_content_sent = False
-
             try:
                 async with self.client.stream(
                     method=method,
@@ -152,34 +149,19 @@ class AIProxy:
                         yield f"data: {json.dumps({'error': error_msg})}\n\n"
                         return
 
-                    # 流式处理响应
+                    # 直接转发流式响应
                     async for line in response.aiter_lines():
-                        if not line.strip():
-                            yield "\n"
-                            continue
+                        # if not line.strip():
+                        #     yield "\n"
+                        #     continue
 
-                        # 处理SSE格式
-                        if line.startswith("data: "):
-                            data_content = line[6:].strip()
-                            if data_content == "[DONE]":
-                                yield f"{line}\n\n"
-                                return
-
-                            try:
-                                data = json.loads(data_content)
-                                # 检查是否需要添加<think>标签
-                                if not first_content_sent:
-                                    data = self._add_think_tag_to_first_chunk(data)
-                                    if self._has_content(data):
-                                        first_content_sent = True
-
-                                yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-                            except json.JSONDecodeError:
-                                # 如果解析失败，直接转发原始行
-                                yield f"{line}\n\n"
-                        else:
-                            # 处理其他SSE字段（如event:, id:等）
-                            yield f"{line}\n"
+                        # 直接转发所有行
+                        # if line.startswith("data: "):
+                        #     yield f"{line}\n\n"
+                        # else:
+                        # 处理其他SSE字段（如event:, id:等）
+                        # yield f"{line}\n"
+                        yield line
             except Exception as e:
                 logger.error(f"流式请求处理失败: {e}")
                 yield f"data: {json.dumps({'error': f'流式请求失败: {str(e)}'})}\n\n"
@@ -219,64 +201,9 @@ class AIProxy:
         """处理非流式响应"""
         content = response.content
         headers = self._filter_response_headers(dict(response.headers))
-        content_type = response.headers.get("content-type", "")
 
-        if content_type.startswith("application/json"):
-            try:
-                data = json.loads(content)
-                modified_data = self._fix_json_response(data)
-                content = json.dumps(modified_data, ensure_ascii=False).encode()
-                # 更新Content-Length
-                headers["content-length"] = str(len(content))
-            except json.JSONDecodeError:
-                pass
-
+        # 直接转发响应，不做任何修改
         return Response(content=content, status_code=response.status_code, headers=headers)
-
-    def _add_think_tag_to_first_chunk(self, data: dict[str, Any]) -> dict[str, Any]:
-        """在第一个内容块添加<think>标签"""
-        choices = data.get("choices", [])
-        if not choices:
-            return data
-
-        choice = choices[0]
-        delta = choice.get("delta", {})
-
-        # 检查content字段
-        content = delta.get("content", "")
-        reasoning_content = delta.get("reasoning_content", "")
-
-        # 如果有内容且不以<think>开头，则添加
-        if content and not content.startswith("<think>"):
-            delta["content"] = "<think>\n" + content
-        elif reasoning_content and not reasoning_content.startswith("<think>"):
-            delta["reasoning_content"] = "<think>\n" + reasoning_content
-
-        return data
-
-    def _fix_json_response(self, data: dict[str, Any]) -> dict[str, Any]:
-        """修复非流式JSON响应"""
-        choices = data.get("choices", [])
-        if not choices:
-            return data
-
-        choice = choices[0]
-        message = choice.get("message", {})
-        content = message.get("content", "")
-
-        if content and not content.startswith("<think>"):
-            message["content"] = "<think>\n" + content
-
-        return data
-
-    def _has_content(self, data: dict[str, Any]) -> bool:
-        """检查数据块是否包含实际内容"""
-        choices = data.get("choices", [])
-        if not choices:
-            return False
-
-        delta = choices[0].get("delta", {})
-        return bool(delta.get("content") or delta.get("reasoning_content"))
 
     def _filter_response_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """过滤响应头，避免与FastAPI自动添加的headers冲突，并保持原生API的header格式"""
@@ -321,9 +248,7 @@ def create_app(target_url: str | None = None) -> FastAPI:
         logger.info("AI API代理服务关闭")
 
     # 创建应用实例
-    app = FastAPI(
-        title="AI API Proxy", description="转发AI模型API并修复<think>标签", version="1.0.0", lifespan=lifespan
-    )
+    app = FastAPI(title="AI API Proxy", description="转发AI模型API请求和响应", version="1.0.0", lifespan=lifespan)
 
     @app.get("/health")
     async def health_check():
