@@ -151,17 +151,16 @@ class AIProxy:
 
                     # 直接转发流式响应
                     async for line in response.aiter_lines():
-                        # if not line.strip():
-                        #     yield "\n"
-                        #     continue
+                        if not line.strip():
+                            yield "\n"
+                            continue
 
                         # 直接转发所有行
-                        # if line.startswith("data: "):
-                        #     yield f"{line}\n\n"
-                        # else:
-                        # 处理其他SSE字段（如event:, id:等）
-                        # yield f"{line}\n"
-                        yield line
+                        if line.startswith("data: "):
+                            yield f"{line}\n\n"
+                        else:
+                            # 处理其他SSE字段（如event:, id:等）
+                            yield f"{line}\n"
             except Exception as e:
                 logger.error(f"流式请求处理失败: {e}")
                 yield f"data: {json.dumps({'error': f'流式请求失败: {str(e)}'})}\n\n"
